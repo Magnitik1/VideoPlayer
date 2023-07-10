@@ -12,80 +12,129 @@ function Player() {
   var [videoSpeed, setVideoSpeed] = useState(1);
   var [open, isOpen] = useState();
 
-  const delay = ms => new Promise(
-    resolve => setTimeout(resolve, ms)
-  );
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   useEffect(() => {
     let keyupHandler = (event) => {
       let vid = videoRef.current;
-      if (event.key === "f" || event.key === "а" || event.key === "F" || event.key === "А"){fullscreen();}
+      if (
+        event.key === "f" ||
+        event.key === "а" ||
+        event.key === "F" ||
+        event.key === "А"
+      ) {
+        fullscreen();
+      }
       if (event.key === " " || event.key === "з" || event.key === "З") {
         play_pause();
       }
-      if (event.key === "ArrowRight"){
-        if(vid.duration-vid.currentTime<=5){vid.currentTime=vid.duration;}
-        else vid.currentTime+=5;
-        console.log(vid.currentTime, 'up')
+      if (event.key === "ArrowRight") {
+        if (vid.duration - vid.currentTime <= 5) {
+          vid.currentTime = vid.duration;
+        } else vid.currentTime += 5;
+        console.log(vid.currentTime, "up");
       }
-      if (event.key === "ArrowLeft"){
-        if(vid.currentTime<=5){vid.currentTime=0;}
-        else vid.currentTime-=5;
-        console.log(vid.currentTime,'down')
+      if (event.key === "ArrowLeft") {
+        if (vid.currentTime <= 5) {
+          vid.currentTime = 0;
+        } else vid.currentTime -= 5;
+        console.log(vid.currentTime, "down");
       }
     };
-
-    let onFocus = (event) =>{
-      
-      // videoRef.current.focus();
-      // videoRef.current.blur(); 
-    }
 
     let keydownHandler = (event) => {
       let vid = videoRef.current;
-      if (event.key === "ArrowUp"){
-        if(vid.volume>=0.95){changeVolume(1); return;}
-        else {changeVolume(vid.volume+0.05); return;}
+      if (event.key === "ArrowUp") {
+        if (vid.volume >= 0.95) {
+          changeVolume(1);
+          return;
+        } else {
+          changeVolume(vid.volume + 0.05);
+          return;
+        }
       }
-      if (event.key === "ArrowDown"){
-        if(vid.volume<=0.05){changeVolume(0); return;}
-        else{changeVolume(vid.volume-0.05); return;}
+      if (event.key === "ArrowDown") {
+        if (vid.volume <= 0.05) {
+          changeVolume(0);
+          return;
+        } else {
+          changeVolume(vid.volume - 0.05);
+          return;
+        }
       }
     };
     let o = 0;
-    let show = async(e)=>{
-      if(!globalIsPlaying||e.layerY>videoRef.current.clientHeight-74){
+    let show = async (e) => {
+      if (!globalIsPlaying || e.layerY > videoRef.current.clientHeight - 74) {
         document.querySelector(".controls").style.display = "block";
-        return;}
-      let t=2200;
-      o++
-      let r=o
-      if(document.querySelector(".controls").style.display === "none")t=50;
+        return;
+      }
+      let t = 2200;
+      o++;
+      let r = o;
+      if (document.querySelector(".controls").style.display === "none") t = 50;
       await delay(t);
-      if(r===o)document.querySelector(".controls").style.display = "none";
+      if (r === o) document.querySelector(".controls").style.display = "none";
       else document.querySelector(".controls").style.display = "block";
-    }
+    };
     let scrolltime = (event) => {
-      console.log((event.layerX/document.getElementById("timeline").clientWidth)*100)
-      setProgress((event.layerX/document.getElementById("timeline").clientWidth)*100)
-      videoRef.current.currentTime = videoRef.current.duration*(event.layerX/document.getElementById("timeline").clientWidth);
-    }
+      console.log(
+        (event.layerX / document.getElementById("timeline").clientWidth) * 100
+      );
+      setProgress(
+        (event.layerX / document.getElementById("timeline").clientWidth) * 100
+      );
+      videoRef.current.currentTime =
+        videoRef.current.duration *
+        (event.layerX / document.getElementById("timeline").clientWidth);
+    };
     let clickHandler = (e) => {
       play_pause();
     };
-    window.addEventListener("focus", onFocus);
-    document.getElementById("timeline").addEventListener("mousedown", scrolltime);
+
+    let breakButtonFocusHandler = (ev) => {
+      ev.preventDefault();
+    };
+
+    function breakButtonFocus(button) {
+      document
+        .querySelector(button)
+        .addEventListener("mousedown", breakButtonFocusHandler);
+    }
+
+    function cleanupBreakButtonFocus(button) {
+      document
+        .querySelector(button)
+        .removeEventListener("mousedown", breakButtonFocusHandler);
+    }
+
+    breakButtonFocus(".fullscreen");
+    breakButtonFocus(".volume");
+    breakButtonFocus(".speed");
+    breakButtonFocus(".play");
+    breakButtonFocus(".volume-slider");
+    document
+      .getElementById("timeline")
+      .addEventListener("mousedown", scrolltime);
     window.addEventListener("keyup", keyupHandler);
     window.addEventListener("keydown", keydownHandler);
     document.getElementById("myvideo").addEventListener("click", clickHandler);
     document.getElementById("myvideo").addEventListener("mousemove", show);
     return function cleanup() {
       document.getElementById("myvideo").removeEventListener("mousemove", show);
-      window.removeEventListener("focus", onFocus);
       window.removeEventListener("keyup", keyupHandler);
       window.removeEventListener("keydown", keyupHandler);
-      document.getElementById("myvideo").removeEventListener("click", clickHandler);
-      document.getElementById("timeline").removeEventListener("mousedown", scrolltime);
+      document
+        .getElementById("myvideo")
+        .removeEventListener("click", clickHandler);
+      document
+        .getElementById("timeline")
+        .removeEventListener("mousedown", scrolltime);
+      cleanupBreakButtonFocus(".fullscreen");
+      cleanupBreakButtonFocus(".volume");
+      cleanupBreakButtonFocus(".speed");
+      cleanupBreakButtonFocus(".play");
+      cleanupBreakButtonFocus(".volume-slider");
     };
   }, []);
 
@@ -122,7 +171,7 @@ function Player() {
       setVolumePic("low");
     }
     if (e != 0) loudness = e;
-    document.getElementById('sound').value = e;
+    document.getElementById("sound").value = e;
   };
 
   var play_pause = () => {
@@ -135,14 +184,14 @@ function Player() {
       videoRef.current.play();
       globalIsPlaying = !globalIsPlaying;
       refresh(1);
-      disapear()
+      disapear();
     }
   };
 
-  const disapear = async e => {
+  const disapear = async (e) => {
     await delay(2200);
-    if(globalIsPlaying||e.layerY>videoRef.current.clientHeight-74){
-        document.querySelector(".controls").style.display = "none";
+    if (globalIsPlaying || e.layerY > videoRef.current.clientHeight - 74) {
+      document.querySelector(".controls").style.display = "none";
     }
   };
 
@@ -153,8 +202,8 @@ function Player() {
     } else {
       document.exitFullscreen();
     }
-    console.log(!open)
-    open=!open
+    console.log(!open);
+    open = !open;
     isOpen(open);
   };
 
@@ -196,9 +245,9 @@ function Player() {
       />
       <div className="controls">
         <div id="timeline" className="timeline_container">
-          <progress className="timeline" value={progress} max="100" />  
+          <progress className="timeline" value={progress} max="100" />
         </div>
-        <button onClick={play_pause} tabIndex="-1">
+        <button className="play" onClick={play_pause} tabIndex="-1">
           {globalIsPlaying ? (
             <svg className="pause-icon" viewBox="0 0 24 24">
               <path fill="currentColor" d="M14,19H18V5H14M6,19H10V5H6V19Z" />
@@ -247,7 +296,8 @@ function Player() {
             }}
           />
         </span>
-        <button className="speed"
+        <button
+          className="speed"
           tabIndex="-1"
           onClick={() => {
             if (videoSpeed == 2) videoSpeed = 0;
@@ -256,7 +306,9 @@ function Player() {
           }}>
           {videoSpeed}X
         </button>
-        <button className="time" tabIndex="-1">{time()}</button>
+        <button className="time" tabIndex="-1">
+          {time()}
+        </button>
         <button className="fullscreen" onClick={fullscreen} tabIndex="-1">
           {open ? (
             <svg className="close" viewBox="0 0 24 24">
